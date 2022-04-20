@@ -125,6 +125,7 @@ public class DumpSpreadColumnBinaryMaker implements IColumnBinaryMaker {
       throw new IOException( "Loader type is not SPREAD." );
     }
     ISpreadLoader spreadLoader = (ISpreadLoader)loader;
+    spreadLoader.setChildCount(columnBinary.columnBinaryList.size());
     for ( ColumnBinary child : columnBinary.columnBinaryList ) {
       spreadLoader.loadChild( child , loader.getLoadSize() );
     }

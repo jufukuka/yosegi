@@ -29,6 +29,8 @@ public interface ISpreadLoader<T> extends ILoader<T> {
     return LoadType.SPREAD;
   }
 
+  default void setChildCount(final int childCount) throws IOException {}
+
   void loadChild(
       final ColumnBinary columnBinary , final int loadSize ) throws IOException;
 
