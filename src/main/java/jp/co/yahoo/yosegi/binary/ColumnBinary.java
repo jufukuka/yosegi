@@ -18,6 +18,7 @@
 
 package jp.co.yahoo.yosegi.binary;
 
+import jp.co.yahoo.yosegi.binary.maker.UnsupportedColumnBinaryMaker;
 import jp.co.yahoo.yosegi.compressor.CompressorNameShortCut;
 import jp.co.yahoo.yosegi.spread.column.ColumnType;
 import jp.co.yahoo.yosegi.spread.column.ColumnTypeFactory;
@@ -218,6 +219,12 @@ public class ColumnBinary {
     int metaCardinality = wrapBuffer.getInt();
     int metaBinaryStart = wrapBuffer.getInt();
     int metaBinaryLength = wrapBuffer.getInt();
+
+    // Supported the case where the child is empty for ARRAY type.
+    if ( metaColumnType == ColumnType.ARRAY && childList.isEmpty() ) {
+      childList.add( UnsupportedColumnBinaryMaker.createUnsupportedColumnBinary(
+          ColumnType.ARRAY.toString() , 0 ) );
+    }
 
     return new ColumnBinary(
         ColumnBinaryMakerNameShortCut.getClassName( metaClassName ) ,
