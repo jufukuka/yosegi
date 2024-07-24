@@ -18,6 +18,11 @@
 package jp.co.yahoo.yosegi.blackbox;
 
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -35,12 +40,16 @@ import jp.co.yahoo.yosegi.config.Configuration;
 import jp.co.yahoo.yosegi.message.parser.json.JacksonMessageReader;
 import jp.co.yahoo.yosegi.message.objects.*;
 
-import jp.co.yahoo.yosegi.inmemory.*;
-import jp.co.yahoo.yosegi.spread.expression.*;
-import jp.co.yahoo.yosegi.spread.column.filter.*;
-import jp.co.yahoo.yosegi.spread.column.*;
 import jp.co.yahoo.yosegi.binary.*;
 import jp.co.yahoo.yosegi.binary.maker.*;
+import jp.co.yahoo.yosegi.inmemory.*;
+import jp.co.yahoo.yosegi.message.parser.IParser;
+import jp.co.yahoo.yosegi.reader.*;
+import jp.co.yahoo.yosegi.spread.expression.*;
+import jp.co.yahoo.yosegi.spread.*;
+import jp.co.yahoo.yosegi.spread.column.*;
+import jp.co.yahoo.yosegi.spread.column.filter.*;
+import jp.co.yahoo.yosegi.writer.*;
 
 public class TestArrayColumn {
 
@@ -654,5 +663,87 @@ public class TestArrayColumn {
       index++;
     }
     checkExpandArray((ArrayColumn)column, repetitions);
+  }
+
+  @Test
+  public void T_load_withEmptySpreadArray() throws IOException {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    Configuration config = new Configuration();
+
+
+    JacksonMessageReader messageReader = new JacksonMessageReader();
+    BufferedReader in = new BufferedReader(new InputStreamReader(this.getClass().getClassLoader().getResource("blackbox/TestArrayColumn_T_load_withEmptySpreadArray.json").openStream()));
+    String line = in.readLine();
+    Spread writeSpread = new Spread();
+    try (YosegiWriter writer = new YosegiWriter(out, config)) {
+      while (line != null) {
+        IParser parser = messageReader.create(line);
+        writeSpread.addParserRow(parser);
+        line = in.readLine();
+      }
+      writer.append(writeSpread);
+      writer.append(writeSpread);
+    }
+
+    try (YosegiReader reader = new YosegiReader()) {
+      WrapReader<Spread> spreadWrapReader = new WrapReader<>(reader, new SpreadRawConverter());
+      Configuration readerConfig = new Configuration();
+      byte[] data = out.toByteArray();
+      InputStream fileIn = new ByteArrayInputStream(data);
+      reader.setNewStream(fileIn, data.length, readerConfig);
+      while (spreadWrapReader.hasNext()) {
+        Spread spread = spreadWrapReader.next();
+        IColumn column = spread.getColumn("col1");
+        assertEquals(ColumnType.ARRAY, column.getColumnType());
+        assertEquals(3, column.size());
+        IColumn child = column.getColumn(0);
+        assertEquals(ColumnType.NULL, child.getColumnType());
+        for ( int i = 0; i < column.size(); i++ ) {
+          ICell cell = column.get(i);
+          assertTrue( cell instanceof ArrayCell );
+          ArrayCell arrayCell = (ArrayCell)cell;
+          for ( int n = arrayCell.getStart(); n < arrayCell.getEnd() ; n++ ) {
+            assertNull( arrayCell.getArrayRow(n).getRow() );
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  public void T_load_withExpandEmptySpreadArray() throws IOException {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    Configuration config = new Configuration();
+
+    JacksonMessageReader messageReader = new JacksonMessageReader();
+    BufferedReader in = new BufferedReader(new InputStreamReader(this.getClass().getClassLoader().getResource("blackbox/TestArrayColumn_T_load_withEmptySpreadArray.json").openStream()));
+    String line = in.readLine();
+    Spread writeSpread = new Spread();
+    try (YosegiWriter writer = new YosegiWriter(out, config)) {
+      while (line != null) {
+        IParser parser = messageReader.create(line);
+        writeSpread.addParserRow(parser);
+        line = in.readLine();
+      }
+      writer.append(writeSpread);
+      writer.append(writeSpread);
+    }
+
+    try (YosegiReader reader = new YosegiReader()) {
+      WrapReader<Spread> spreadWrapReader = new WrapReader<>(reader, new SpreadRawConverter());
+      Configuration readerConfig = new Configuration();
+      readerConfig.set("spread.reader.expand.column", "{ \"base\" :{ \"node\" : \"col1\" ,  \"link_name\" : \"expand\" } }");
+      readerConfig.set("spread.reader.flatten.column", "[ { \"link_name\" : \"f1\" , \"nodes\" : [\"expand\" , \"f1\"] } , { \"link_name\" : \"f2\" , \"nodes\" : [\"expand\" , \"f2\"] } , { \"link_name\" : \"ex\" , \"nodes\" : [\"expand\"] } ]");
+      readerConfig.set("spread.reader.read.column.names", "[ [ \"f1\"] , [ \"f2\"] , [ \"f3\"] , [\"col3\"] , [ \"a\" , \"b\" ] ]");
+      byte[] data = out.toByteArray();
+      InputStream fileIn = new ByteArrayInputStream(data);
+      reader.setNewStream(fileIn, data.length, readerConfig);
+      while (spreadWrapReader.hasNext()) {
+        Spread spread = spreadWrapReader.next();
+        assertEquals(6, spread.size());
+        IColumn column = spread.getColumn("ex");
+        assertEquals(ColumnType.NULL, column.getColumnType());
+      }
+    }
   }
 }

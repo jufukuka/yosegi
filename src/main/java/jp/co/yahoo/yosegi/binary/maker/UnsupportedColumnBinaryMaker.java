@@ -23,15 +23,37 @@ import jp.co.yahoo.yosegi.binary.ColumnBinaryMakerConfig;
 import jp.co.yahoo.yosegi.binary.ColumnBinaryMakerCustomConfigNode;
 import jp.co.yahoo.yosegi.binary.CompressResultNode;
 import jp.co.yahoo.yosegi.blockindex.BlockIndexNode;
+import jp.co.yahoo.yosegi.compressor.DefaultCompressor;
 import jp.co.yahoo.yosegi.inmemory.ILoader;
 import jp.co.yahoo.yosegi.inmemory.LoadType;
 import jp.co.yahoo.yosegi.spread.analyzer.IColumnAnalizeResult;
+import jp.co.yahoo.yosegi.spread.column.ColumnType;
 import jp.co.yahoo.yosegi.spread.column.IColumn;
 import jp.co.yahoo.yosegi.spread.column.NullColumn;
 
 import java.io.IOException;
 
 public class UnsupportedColumnBinaryMaker implements IColumnBinaryMaker {
+
+  /**
+   * Creates an unsupported column binary.
+   */
+  public static ColumnBinary createUnsupportedColumnBinary(
+      final String columnName , final int columnSize ) {
+    return new ColumnBinary(
+        UnsupportedColumnBinaryMaker.class.getName() ,
+        DefaultCompressor.class.getName() ,
+        columnName ,
+        ColumnType.NULL ,
+        columnSize ,
+        0 ,
+        0 ,
+        -1 ,
+        new byte[0] ,
+        0 ,
+        0 ,
+        null );
+  }
 
   @Override
   public ColumnBinary toBinary(
