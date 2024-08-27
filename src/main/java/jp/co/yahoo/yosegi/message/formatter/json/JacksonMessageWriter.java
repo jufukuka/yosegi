@@ -20,6 +20,7 @@ package jp.co.yahoo.yosegi.message.formatter.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.NullNode;
 
 import jp.co.yahoo.yosegi.message.formatter.IMessageWriter;
@@ -37,6 +38,11 @@ public class JacksonMessageWriter implements IMessageWriter {
 
   public JacksonMessageWriter() {
     objectMapper = new ObjectMapper();
+  }
+
+  public JacksonMessageWriter( SerializationFeature serialization ) {
+    objectMapper = new ObjectMapper();
+    objectMapper.enable( serialization );
   }
 
   @Override
