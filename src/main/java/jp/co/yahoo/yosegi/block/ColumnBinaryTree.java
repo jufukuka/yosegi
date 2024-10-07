@@ -182,6 +182,12 @@ public class ColumnBinaryTree {
           // array column childName is "ARRAY"
           childColumnBinary.setColumnFilter( columnNameNode );
           isAppend = true;
+        } else if ( ColumnTypeFactory.getColumnTypeFromName( childName ) == ColumnType.SPREAD ) {
+          // Union column childName is "ARRAY" or "SPREAD"
+          // In the case of Primitive type, pushdown setting is not necessary,
+          // so Array, SPREAD can be determined.
+          childColumnBinary.setColumnFilter( columnNameNode );
+          isAppend = true;
         } else {
           ColumnNameNode childColumnNameNode = new ColumnNameNode( childName , true );
           childColumnNameNode.setNeedAllChild( false );
