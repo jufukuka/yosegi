@@ -1,0 +1,2 @@
+{"primitive" : 100 , "struct": {"c1":10,"c2":0} , "array_struct" : [ {"c1":10,"c2":0}, {"c1":11,"c2":1} ], "union_struct": {"c1":10,"c2":0} , "union_array_struct" : [ {"c1":10,"c2":0}, {"c1":11,"c2":1} ] }
+{"primitive" : 100 , "struct": {"c1":10,"c2":0} , "array_struct" : [ {"c1":10,"c2":0}, {"c1":11,"c2":1} ], "union_struct": "dummy" , "union_array_struct" : "dummy" }

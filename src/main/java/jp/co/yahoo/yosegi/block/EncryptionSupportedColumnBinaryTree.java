@@ -216,6 +216,13 @@ public class EncryptionSupportedColumnBinaryTree {
           // array column childName is "ARRAY"
           childColumnBinary.setColumnFilter( columnNameNode );
           isAppend = true;
+        } else if ( ColumnTypeFactory.getColumnTypeFromName(
+            childColumnBinary.getNodeName() ) == ColumnType.SPREAD ) {
+          // Union column childName is "ARRAY" or "SPREAD"
+          // In the case of Primitive type, pushdown setting is not necessary,
+          // so Array, SPREAD can be determined.
+          childColumnBinary.setColumnFilter( columnNameNode );
+          isAppend = true;
         } else {
           ColumnNameNode childColumnNameNode =
               new ColumnNameNode( childColumnBinary.getNodeName() , true );
