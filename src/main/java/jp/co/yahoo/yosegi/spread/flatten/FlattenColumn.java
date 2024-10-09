@@ -67,7 +67,8 @@ public class FlattenColumn {
           currentColumnBinary = newCurrent;
           currentColumnBinaryList = newColumnBinaryList;
         }
-        if ( currentColumnBinary.columnType != ColumnType.SPREAD ) {
+        if ( currentColumnBinary == null
+            || currentColumnBinary.columnType != ColumnType.SPREAD ) {
           return null;
         }
         currentColumnBinary =

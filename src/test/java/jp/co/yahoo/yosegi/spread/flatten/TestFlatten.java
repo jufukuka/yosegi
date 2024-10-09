@@ -66,6 +66,55 @@ public class TestFlatten {
     return spreadWrapReader.next();
   }
 
+  private Spread createNewSpreadWithUnion( final Configuration readerConfig ) throws IOException {
+    Spread spread = new Spread();
+    Map<String,Object> root = new HashMap<String,Object>();
+    root.put( "C1" , new StringObj( "a" ) );
+    root.put( "C2" , new StringObj( "b" ) );
+    root.put( "C3" , new StringObj( "c" ) );
+    Map<String,Object> child = new HashMap<String,Object>();
+    child.put( "C1" , new StringObj( "aa" ) );
+    child.put( "C2" , new StringObj( "bb" ) );
+    child.put( "C3" , new StringObj( "cc" ) );
+    root.put( "c4" , child );
+    spread.addRow( root );
+    root.put( "c4" , new StringObj( "d" ) );
+    spread.addRow( root );
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    YosegiWriter writer = new YosegiWriter( out , new Configuration() );
+    writer.append( spread );
+    writer.close();
+    byte[] data = out.toByteArray();
+
+    ByteArrayInputStream in = new ByteArrayInputStream( data );
+    YosegiReader reader = new YosegiReader();
+    WrapReader<Spread> spreadWrapReader = new WrapReader<>(reader, new SpreadRawConverter());
+    reader.setNewStream( in , data.length , readerConfig );
+    return spreadWrapReader.next();
+  }
+
+  private Spread createNewSpreadCaseUnionAndNotExists( final Configuration readerConfig ) throws IOException {
+    Spread spread = new Spread();
+    Map<String,Object> root = new HashMap<String,Object>();
+    root.put( "c4" , new StringObj( "a" ) );
+    spread.addRow( root );
+    root.put( "c4" , new IntegerObj( 0 ) );
+    spread.addRow( root );
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    YosegiWriter writer = new YosegiWriter( out , new Configuration() );
+    writer.append( spread );
+    writer.close();
+    byte[] data = out.toByteArray();
+
+    ByteArrayInputStream in = new ByteArrayInputStream( data );
+    YosegiReader reader = new YosegiReader();
+    WrapReader<Spread> spreadWrapReader = new WrapReader<>(reader, new SpreadRawConverter());
+    reader.setNewStream( in , data.length , readerConfig );
+    return spreadWrapReader.next();
+  }
+
   @Test
   public void T_flatten_equalsSetValue_withV1Json() throws IOException {
     String json = "[";
@@ -172,6 +221,51 @@ public class TestFlatten {
     assertEquals( "aa" , ( (PrimitiveObject)( flattenSpread.getColumn( "c_2" ).get(0).getRow() ) ).getString() );
     assertEquals( "bb" , ( (PrimitiveObject)( flattenSpread.getColumn( "c_3" ).get(0).getRow() ) ).getString() );
     assertEquals( "cc" , ( (PrimitiveObject)( flattenSpread.getColumn( "c_4" ).get(0).getRow() ) ).getString() );
+  }
+
+  @Test
+  public void T_flatten_equalsSetValue_caseUnion() throws IOException {
+    String json = "[";
+    json += "{\"nodes\":[\"C1\"],\"link_name\":\"root_c1\"},";
+    json += "{\"nodes\":[\"C2\"],\"link_name\":\"root_c2\"},";
+    json += "{\"nodes\":[\"C3\"],\"link_name\":\"root_c3\"},";
+    json += "{\"nodes\":[\"c4\",\"C1\"],\"link_name\":\"c4_c1\"},";
+    json += "{\"nodes\":[\"c4\",\"C2\"],\"link_name\":\"c4_c2\"},";
+    json += "{\"nodes\":[\"c4\",\"C3\"],\"link_name\":\"c4_c3\"}";
+    json += "]";
+    Configuration config = new Configuration();
+    config.set( "spread.reader.flatten.column" , json );
+    Spread flattenSpread = createNewSpreadWithUnion( config );
+    assertEquals( "a" , ( (PrimitiveObject)( flattenSpread.getColumn( "root_c1" ).get(0).getRow() ) ).getString() );
+    assertEquals( "b" , ( (PrimitiveObject)( flattenSpread.getColumn( "root_c2" ).get(0).getRow() ) ).getString() );
+    assertEquals( "c" , ( (PrimitiveObject)( flattenSpread.getColumn( "root_c3" ).get(0).getRow() ) ).getString() );
+    assertEquals( "aa" , ( (PrimitiveObject)( flattenSpread.getColumn( "c4_c1" ).get(0).getRow() ) ).getString() );
+    assertEquals( "bb" , ( (PrimitiveObject)( flattenSpread.getColumn( "c4_c2" ).get(0).getRow() ) ).getString() );
+    assertEquals( "cc" , ( (PrimitiveObject)( flattenSpread.getColumn( "c4_c3" ).get(0).getRow() ) ).getString() );
+    assertEquals( "a" , ( (PrimitiveObject)( flattenSpread.getColumn( "root_c1" ).get(1).getRow() ) ).getString() );
+    assertEquals( "b" , ( (PrimitiveObject)( flattenSpread.getColumn( "root_c2" ).get(1).getRow() ) ).getString() );
+    assertEquals( "c" , ( (PrimitiveObject)( flattenSpread.getColumn( "root_c3" ).get(1).getRow() ) ).getString() );
+    assertNull( flattenSpread.getColumn( "c4_c1" ).get(1).getRow() );
+    assertNull( flattenSpread.getColumn( "c4_c2" ).get(1).getRow() );
+    assertNull( flattenSpread.getColumn( "c4_c3" ).get(1).getRow() );
+  }
+
+  @Test
+  public void T_flatten_equalsSetValue_withUnionAndNotExists() throws IOException {
+    String json = "[";
+    json += "{\"nodes\":[\"c4\",\"C1\"],\"link_name\":\"C1\"},";
+    json += "{\"nodes\":[\"c4\",\"C2\"],\"link_name\":\"C2\"},";
+    json += "{\"nodes\":[\"c4\",\"C3\"],\"link_name\":\"C3\"}";
+    json += "]";
+    Configuration config = new Configuration();
+    config.set( "spread.reader.flatten.column" , json );
+    Spread flattenSpread = createNewSpreadCaseUnionAndNotExists( config );
+    assertNull( flattenSpread.getColumn( "C1" ).get(0).getRow() );
+    assertNull( flattenSpread.getColumn( "C1" ).get(1).getRow() );
+    assertNull( flattenSpread.getColumn( "C2" ).get(0).getRow() );
+    assertNull( flattenSpread.getColumn( "C2" ).get(1).getRow() );
+    assertNull( flattenSpread.getColumn( "C3" ).get(0).getRow() );
+    assertNull( flattenSpread.getColumn( "C3" ).get(1).getRow() );
   }
 
 }
