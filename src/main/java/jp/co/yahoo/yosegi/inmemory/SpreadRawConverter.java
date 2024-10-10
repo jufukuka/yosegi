@@ -32,6 +32,7 @@ public class SpreadRawConverter implements IRawConverter<Spread> {
   @Override
   public Spread convert(
       final List<ColumnBinary> raw , final int loadSize ) throws IOException {
+    System.out.println("convert");
     Spread spread = new Spread();
     for ( ColumnBinary columnBinary : raw ) {
       if ( columnBinary != null ) {

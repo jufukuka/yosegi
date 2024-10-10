@@ -38,6 +38,7 @@ public class YosegiLoaderFactory implements ILoaderFactory<IColumn> {
       case RLE_ARRAY :
         return new YosegiRunLengthEncodingArrayLoader( columnBinary , loadSize );
       case ARRAY :
+        System.out.println("^^^^^^");
         return new YosegiArrayLoader( columnBinary , loadSize );
       case SPREAD :
         return new YosegiSpreadLoader( columnBinary , loadSize );

@@ -86,6 +86,7 @@ public class ArrayColumn implements IColumn {
 
   @Override
   public int add( final ColumnType type , final Object obj , final int index ) throws IOException {
+    System.out.println("ArrayColumn.add");
     if ( type != getColumnType() ) {
       throw new IOException( "Incorrect input data type : " + obj.getClass().getName() );
     }
@@ -93,6 +94,7 @@ public class ArrayColumn implements IColumn {
     int start = spread.size();
     if ( obj instanceof List ) {
       for ( Object childObject : (List) obj ) {
+        System.out.println("ArrayColumn.add:addRow:1");
         totalBytes += spread.addRow( CHILD_COLUMN_NAME , childObject );
       }
     } else {
@@ -100,8 +102,10 @@ public class ArrayColumn implements IColumn {
       boolean hasParser = parser.hasParser(0);
       for ( int i = 0 ; i < parser.size() ; i++ ) {
         if ( hasParser ) {
+          System.out.println("ArrayColumn.add:addRow:2");
           totalBytes += spread.addRow( CHILD_COLUMN_NAME , parser.getParser(i) );
         } else {
+          System.out.println("ArrayColumn.add:addRow:3");
           totalBytes += spread.addRow( CHILD_COLUMN_NAME , parser.get(i) );
         }
       }
@@ -185,11 +189,16 @@ public class ArrayColumn implements IColumn {
 
   @Override
   public IField getSchema( final String schemaName ) throws IOException {
+    System.out.println(">>>ArrayColumn.getSchema");
+    System.out.println(schemaName);
     IField childSchema = spread.getColumn(0).getSchema();
     if ( childSchema == null ) {
       childSchema = new NullField( "dummy" );
     }
-    return new ArrayContainerField( schemaName , childSchema );
+    //return new ArrayContainerField( schemaName , childSchema );
+    IField field = new ArrayContainerField( schemaName , childSchema );
+    System.out.println("<<<ArrayColumn.getSchema");
+    return field;
   }
 
   public IColumn getChildColumn() {

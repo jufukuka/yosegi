@@ -150,7 +150,13 @@ public class PrimitiveColumn implements IColumn {
 
   @Override
   public IField getSchema( final String schemaName ) throws IOException {
-    return PrimitiveSchemaFactory.getSchema( getColumnType() , schemaName );
+    System.out.println(">>>PrimitiveColumn.getSchema");
+    System.out.println("schemaName: " + schemaName);
+    System.out.println("columnType: " + getColumnType());
+    //return PrimitiveSchemaFactory.getSchema( getColumnType() , schemaName );
+    IField field = PrimitiveSchemaFactory.getSchema( getColumnType() , schemaName );
+    System.out.println("<<<PrimitiveColumn.getSchema");
+    return field;
   }
 
   @Override

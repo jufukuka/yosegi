@@ -104,6 +104,7 @@ public class YosegiArrayLoader implements IArrayLoader<IColumn> {
 
   @Override
   public IColumn build() throws IOException {
+    System.out.println("$$$$$");
     return arrayColumn;
   }
 
@@ -117,6 +118,9 @@ public class YosegiArrayLoader implements IArrayLoader<IColumn> {
   @Override
   public void loadChild(
       final ColumnBinary columnBinary , final int childLoadSize ) throws IOException {
+    System.out.println("*****");
+    System.out.println( columnBinary.columnName );
+    System.out.println(columnBinary.columnType);
     YosegiLoaderFactory factory = new YosegiLoaderFactory();
     IColumn child = factory.create( columnBinary , childLoadSize );
     child.setParentsColumn( arrayColumn );

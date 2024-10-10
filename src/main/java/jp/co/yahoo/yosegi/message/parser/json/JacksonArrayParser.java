@@ -27,6 +27,7 @@ import jp.co.yahoo.yosegi.message.parser.IParser;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -35,26 +36,31 @@ public class JacksonArrayParser implements IParser {
   private final ArrayNode arrayNode;
 
   public JacksonArrayParser( final ArrayNode arrayNode ) {
+    System.out.println("JacksonArrayParser");
     this.arrayNode = arrayNode;
   }
 
   @Override
   public PrimitiveObject get(final String key ) throws IOException {
+    System.out.println("JacksonArrayParser get: key:" + key);
     return get( Integer.parseInt( key ) );
   }
 
   @Override
   public PrimitiveObject get( final int index ) throws IOException {
+    System.out.println("JacksonArrayParser get: index:" + index);
     return JsonNodeToPrimitiveObject.get( arrayNode.path( index ) );
   }
 
   @Override
   public IParser getParser( final String key ) throws IOException {
+    System.out.println("JacksonArrayParser getParser: key:" + key);
     return getParser( Integer.parseInt( key ) );
   }
 
   @Override
   public IParser getParser( final int index ) throws IOException {
+    System.out.println("JacksonArrayParser getParser: index:" + index);
     return JsonNodeToParser.get( arrayNode.path( index ) );
   }
 
@@ -64,6 +70,7 @@ public class JacksonArrayParser implements IParser {
     for ( int i = 0 ; i < size() ; i++ ) {
       keys[i] = Integer.toString(i);
     }
+    System.out.println("JacksonArrayParser getAllKey: keys:" + Arrays.toString(keys));
     return keys;
   }
 
@@ -94,11 +101,13 @@ public class JacksonArrayParser implements IParser {
 
   @Override
   public boolean hasParser( final int index ) throws IOException {
+    System.out.println("JacksonArrayParser hasParser: index:" + index);
     return JsonNodeToParser.hasParser( arrayNode.path( index ) );
   }
 
   @Override
   public boolean hasParser( final String key ) throws IOException {
+    System.out.println("JacksonArrayParser hasParser: key:" + key);
     return hasParser( Integer.parseInt( key ) );
   }
 

@@ -162,6 +162,7 @@ public class SpreadColumn implements IColumn {
 
   @Override
   public IField getSchema( final String schemaName ) throws IOException {
+    System.out.println(">>>SpreadColumn.getSchema");
     StructContainerField schema = new StructContainerField( schemaName );
     IntStream.range( 0 , spread.getColumnSize() )
         .forEach( i -> {
@@ -171,6 +172,7 @@ public class SpreadColumn implements IColumn {
             throw new UncheckedIOException( "IOException addRow in lambda." , ex );
           }
         } );
+    System.out.println("<<<SpreadColumn.getSchema");
     return schema;
   }
 

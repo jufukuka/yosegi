@@ -167,10 +167,12 @@ public class YosegiReader implements AutoCloseable {
    * It is judged whether there is the next Spread.
    */
   public boolean hasNext() throws IOException {
+    System.out.println("hasNext");
     return setNextBlock();
   }
 
   private boolean setNextBlock() throws IOException {
+    System.out.println("setNextBlock");
     while ( ! currentBlockReader.hasNext() ) {
       if ( readTargetList.isEmpty() ) {
         return false;
@@ -188,6 +190,7 @@ public class YosegiReader implements AutoCloseable {
    * @deprecated Data conversion is integrated into WrapReader.
    */
   public Spread next() throws IOException {
+    System.out.println("next");
     if ( ! setNextBlock() ) {
       return new Spread();
     }
@@ -214,6 +217,7 @@ public class YosegiReader implements AutoCloseable {
    * Get the next Spread as a list of ColumnBinary.
    */
   public List<ColumnBinary> nextRaw() throws IOException {
+    System.out.println("nextRaw");
     if ( ! setNextBlock() ) {
       return new ArrayList<ColumnBinary>();
     }

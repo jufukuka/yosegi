@@ -245,6 +245,7 @@ public class PushdownSupportedBlockReader implements IBlockReader {
 
   @Override
   public Spread next() throws IOException {
+    System.out.println("PushdownSupportedBlockReader.next");
     SpreadRawConverter converter = new SpreadRawConverter();
 
     List<ColumnBinary> raw = nextRaw();

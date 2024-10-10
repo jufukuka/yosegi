@@ -32,6 +32,7 @@ import jp.co.yahoo.yosegi.spread.column.UnionColumn;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,10 @@ public class Spread {
   }
 
   private int registerRow( final String columnName , final Object row ) throws IOException {
+    System.out.println("Spread.registerRow");
+    System.out.println( columnName );
     ColumnType type = ColumnTypeFactory.get( row );
+    System.out.println( type );
     switch ( type ) {
       case EMPTY_SPREAD:
       case EMPTY_ARRAY:
@@ -81,6 +85,7 @@ public class Spread {
     }
 
     int index = getColumnIndex( columnName );
+    System.out.println( index );
 
     if ( index == -1 ) {
       IColumn column = ColumnFactory.get( type , columnName );
@@ -103,6 +108,7 @@ public class Spread {
    * Add row data.
    */
   public int addRow( final String key , final Object row ) throws IOException {
+    System.out.println("Spread.addRow:1");
     int totalBytes = registerRow( key , row );
     rowCount++;
     totalBytes += getColumnSize() * 4;
@@ -113,6 +119,7 @@ public class Spread {
    * Add row data.
    */
   public int addRow( final Map<String,Object> row ) throws IOException {
+    System.out.println("Spread.addRow:2");
     int totalBytes = 0;
     for ( Map.Entry<String,Object> entry : row.entrySet() ) {
       totalBytes += registerRow( entry.getKey() , entry.getValue() );
@@ -126,7 +133,9 @@ public class Spread {
    * Add row data.
    */
   public int addParserRow( final IParser parser )throws IOException {
+    System.out.println("Spread.addParserRow");
     String[] keys = parser.getAllKey();
+    System.out.println(Arrays.toString(keys));
     int totalBytes = 0;
     for ( String key : keys ) {
       if ( parser.hasParser( key ) ) {
@@ -143,6 +152,7 @@ public class Spread {
    * Add rows data.
    */
   public int addRows( final List<Map<String,Object>> rows ) throws IOException {
+    System.out.println("Spread.addRows");
     int totalBytes = 0;
     for ( Map<String,Object> row : rows ) {
       totalBytes += addRow( row );
@@ -228,15 +238,21 @@ public class Spread {
    * Create a schema from this column structure of Spread.
    */
   public IField getSchema( final String schemaName ) throws IOException {
+    System.out.println(">>>Spread.getSchema");
     StructContainerField schema = new StructContainerField( schemaName );
     columnList.stream()
         .forEach( column -> {
           try {
+            System.out.println(">>>Spread.getSchema.forEach");
+            System.out.println(column.getColumnName());
+            System.out.println(column.getColumnType());
             schema.set( column.getSchema() );
+            System.out.println("<<<Spread.getSchema.forEach");
           } catch ( IOException ex ) {
             throw new UncheckedIOException( "IOException addRow in lambda." , ex );
           }
         } );
+    System.out.println("<<<Spread.getSchema");
     return schema;
   }
 

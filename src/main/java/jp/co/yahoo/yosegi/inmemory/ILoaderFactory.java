@@ -44,6 +44,7 @@ public interface ILoaderFactory<T> {
     } else {
       loader.finish();
     }
+    System.out.println("%%%");
     return loader.build();
   }
 

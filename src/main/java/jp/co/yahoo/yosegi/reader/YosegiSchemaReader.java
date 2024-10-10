@@ -74,6 +74,7 @@ public class YosegiSchemaReader implements IStreamReader {
   }
 
   private boolean nextReader() throws IOException {
+    System.out.println("YosegiSchemaReader nextReader");
     if (! spreadWrapReader.hasNext()) {
       currentSpread = null;
       currentIndex = 0;
@@ -93,6 +94,7 @@ public class YosegiSchemaReader implements IStreamReader {
 
   @Override
   public boolean hasNext() throws IOException {
+    System.out.println("YosegiSchemaReader hasNext");
     if ( currentSpread == null || currentIndex == currentSpread.size() ) {
       if ( ! nextReader() ) {
         return false;
@@ -103,6 +105,7 @@ public class YosegiSchemaReader implements IStreamReader {
 
   @Override
   public IParser next() throws IOException {
+    System.out.println("YosegiSchemaReader next");
     if ( currentSpread == null || currentIndex == currentSpread.size() ) {
       if ( ! nextReader() ) {
         return null;
