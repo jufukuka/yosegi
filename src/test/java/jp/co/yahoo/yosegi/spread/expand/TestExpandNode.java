@@ -394,7 +394,16 @@ public class TestExpandNode {
     assertNotNull( findColumnBinaryFromColumnName( "col2" , binaryList ));
     ColumnBinary col2 = findColumnBinaryFromColumnName( "col2" , binaryList );
     ColumnBinary col2_2 = findColumnBinaryFromColumnName( "col2-2" , col2.columnBinaryList );
-    ColumnBinary col2_2_inner = col2_2.columnBinaryList.get(0);
+    ColumnBinary col2_2_inner = null;
+    for ( ColumnBinary c : col2_2.columnBinaryList ) {
+      if ( c.columnType == ColumnType.UNION ) {
+        for ( ColumnBinary c2 : c.columnBinaryList ) {
+          if ( c2.columnType == ColumnType.SPREAD ) {
+            col2_2_inner = c2;
+          }
+        }
+      }
+    }
     assertNotNull(findColumnBinaryFromColumnName("col2-2-1",col2_2_inner.columnBinaryList));
     assertNotNull(findColumnBinaryFromColumnName("col2-2-2",col2_2_inner.columnBinaryList));
     assertNotNull( findColumnBinaryFromColumnName( "ex_col3" , binaryList ));

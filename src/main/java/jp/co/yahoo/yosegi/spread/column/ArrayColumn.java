@@ -97,9 +97,8 @@ public class ArrayColumn implements IColumn {
       }
     } else {
       IParser parser = (IParser)obj;
-      boolean hasParser = parser.hasParser(0);
       for ( int i = 0 ; i < parser.size() ; i++ ) {
-        if ( hasParser ) {
+        if (  parser.hasParser(i) ) {
           totalBytes += spread.addRow( CHILD_COLUMN_NAME , parser.getParser(i) );
         } else {
           totalBytes += spread.addRow( CHILD_COLUMN_NAME , parser.get(i) );
