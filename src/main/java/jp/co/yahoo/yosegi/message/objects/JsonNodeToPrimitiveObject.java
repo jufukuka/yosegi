@@ -62,7 +62,7 @@ public class JsonNodeToPrimitiveObject {
     } else if ( jsonNode instanceof MissingNode ) {
       return NullObj.getInstance();
     } else {
-      return new StringObj( jsonNode.toString() );
+      return NullObj.getInstance();
     }
   }
 

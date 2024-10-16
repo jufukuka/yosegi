@@ -121,6 +121,16 @@ public class TestArrayColumn {
     };
   }
 
+  private String[] getJsonStringsWithUnion() {
+    return new String[] {
+      "[{\"col1\":\"a\"},\"b\",\"c\"]",
+      "null",
+      "null",
+      "null",
+      "[\"dd\"]"
+    };
+  }
+
   private String[] getExpectedValues(final int[] repetitions) {
     String[][] values = {
       {"a", "b", "c"},
@@ -218,6 +228,32 @@ public class TestArrayColumn {
     return expectedValues.toArray(new String[expectedValues.size()][]);
   }
 
+  private String[][] getExpandValuesWithUnion(final int[] repetitions) {
+    String[][] values = {
+        {null, "b", "c"},
+        null,
+        null,
+        null,
+        {"dd"}
+    };
+    List<String[]> expectedValues = new ArrayList<>();
+    for (int i = 0; i < repetitions.length; i++) {
+      if (repetitions[i] == 0) {
+        continue;
+      }
+      if (i < values.length) {
+        for ( int j = 0; j < repetitions[i]; j++ ){
+          expectedValues.add(values[i]);
+        }
+      } else {
+        for ( int j = 0; j < repetitions[i]; j++ ){
+          expectedValues.add(null);
+        }
+      }
+    }
+    return expectedValues.toArray(new String[expectedValues.size()][]);
+  }
+
   private void checkExpandArray(final ArrayColumn column, final int[] repetitions) throws IOException {
     String[][] values = getExpandValues(repetitions);
     column.setDefaultCell(NullCell.getInstance());
@@ -249,6 +285,28 @@ public class TestArrayColumn {
         assertEquals(columnValue.size(), values[i].length );
         for (int j = 0; j < columnValue.size(); j++) {
           assertEquals(((PrimitiveObject)(columnValue.get(j).getRow())).getString(), values[i][j]);
+        }
+      }
+    }
+  }
+
+  private void checkExpandArrayWithUnion(final ArrayColumn column, final int[] repetitions) throws IOException {
+    String[][] values = getExpandValuesWithUnion(repetitions);
+    column.setDefaultCell(NullCell.getInstance());
+    assertEquals(column.size(), values.length);
+    for (int i = 0; i < column.size(); i++) {
+      if (column.get(i).getRow() == null) {
+        assertNull(values[i]);
+      } else {
+        assertNotNull(values[i]);
+        List<ICell> columnValue = ((ArrayCell)(column.get(i))).getRow();
+        assertEquals(columnValue.size(), values[i].length );
+        for (int j = 0; j < columnValue.size(); j++) {
+          if ( columnValue.get(j).getType() != ColumnType.STRING ) {
+            assertNull(values[i][j]);
+          } else {
+            assertEquals(((PrimitiveObject)(columnValue.get(j).getRow())).getString(), values[i][j]);
+          }
         }
       }
     }
@@ -372,6 +430,36 @@ public class TestArrayColumn {
       index++;
     }
     checkExpandArrayWithNull((ArrayColumn)column, repetitions);
+  }
+
+  @ParameterizedTest
+  @MethodSource("data1")
+  public void T_load_withAllIndexWithUnion(final String targetClassName) throws IOException {
+    int[] repetitions = new int[] {1, 1, 1, 1, 1};
+    int loadSize = getLoadSize(repetitions);
+    IColumn column = createArrayColumnFromJsonString(
+        targetClassName, getJsonStringsWithUnion(), repetitions, loadSize);
+    IColumn child = column.getColumn(0).getColumn(ColumnType.STRING);
+
+    assertEquals(ColumnType.ARRAY, column.getColumnType());
+    // loadSize: 5
+    assertEquals(loadSize, column.size());
+
+    assertEquals(ColumnType.STRING, child.getColumnType());
+    // childLength: 4
+    assertEquals(4, child.size());
+    // expected: ["a","b","c","dd"]
+    String[] expectedValues = getExpectedValues(repetitions);
+    int index = 0;
+    for (String expected : new String[]{null, "b", "c", "dd"}) {
+      if ( index == 0 ) {
+        assertNull(child.get(index).getRow());
+      } else {
+        assertEquals(expected, ((PrimitiveObject) child.get(index).getRow()).getString());
+      }
+      index++;
+    }
+    checkExpandArrayWithUnion((ArrayColumn)(column), repetitions);
   }
 
   @ParameterizedTest
