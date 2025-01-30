@@ -53,6 +53,57 @@ import jp.co.yahoo.yosegi.writer.*;
 
 public class TestArrayColumn {
 
+  public class CheckLoadChildRunLengthEncodingArrayLoader implements IRunLengthEncodingArrayLoader<Boolean> {
+
+    private int loadSize;
+    private boolean setChild = false;
+
+    public CheckLoadChildRunLengthEncodingArrayLoader( final int loadSize ) {
+      this.loadSize = loadSize;
+    }
+
+    @Override
+    public int getLoadSize() {
+      return loadSize;
+    }
+
+    @Override
+    public void finish() throws IOException {
+
+    }
+
+    @Override
+    public Boolean build() throws IOException {
+      return setChild;
+    }
+
+    @Override
+    public void setRowGroupCount( final int count ) throws IOException {}
+
+    @Override
+    public void setNullAndRepetitions(
+        final int startIndex ,
+        final int repetitions ,
+        final int rowGroupIndex )  throws IOException {
+    }
+
+    @Override
+    public void setRowGourpIndexAndRepetitions(
+        final int startIndex ,
+        final int repetitions ,
+        final int rowGroupIndex ,
+        final int rowGroupStart ,
+        final int rowGourpLength ) throws IOException {
+    }
+
+    @Override
+    public void loadChild(
+        final ColumnBinary columnBinary , final int childLoadSize ) throws IOException {
+      setChild = true;
+    }
+
+  }
+
   public static Stream<Arguments> data1() throws IOException{
     return Stream.of(
       arguments( "jp.co.yahoo.yosegi.binary.maker.MaxLengthBasedArrayColumnBinaryMaker" )
@@ -101,6 +152,30 @@ public class TestArrayColumn {
     return new YosegiLoaderFactory().create(columnBinary, loaderSize);
   }
 
+  private ColumnBinary createColumnBinaryFromJsonString(
+      final String targetClassName,
+      final String[] jsonStrings,
+      final int[] repetitions,
+      final int loadSize)
+      throws IOException {
+    JacksonMessageReader jsonReader = new JacksonMessageReader();
+    ArrayColumn arrayColumn = new ArrayColumn( "test" );
+    int addCount = 0;
+    for ( String json : jsonStrings ) {
+      arrayColumn.add( ColumnType.ARRAY , jsonReader.create( json ) , addCount );
+      addCount++;
+    }
+
+    IColumnBinaryMaker maker = FindColumnBinaryMaker.get( targetClassName );
+    ColumnBinaryMakerConfig defaultConfig = new ColumnBinaryMakerConfig();
+    ColumnBinaryMakerCustomConfigNode configNode = new ColumnBinaryMakerCustomConfigNode( "root" , defaultConfig );
+    ColumnBinary columnBinary = maker.toBinary( defaultConfig , null , new CompressResultNode() , arrayColumn );
+    if (repetitions != null) {
+      columnBinary.setRepetitions(repetitions, loadSize);
+    }
+    return columnBinary;
+  }
+
   private String[] getJsonStrings() {
     return new String[] {
       "[\"a\",\"b\",\"c\"]",
@@ -117,6 +192,16 @@ public class TestArrayColumn {
       "null",
       "null",
       "null",
+      "[\"dd\"]"
+    };
+  }
+
+  private String[] getJsonStringsStartGreaterThanColumnSize() {
+    return new String[] {
+      "null",
+      "null",
+      "null",
+      "[\"a\",\"b\",\"c\"]",
       "[\"dd\"]"
     };
   }
@@ -751,6 +836,19 @@ public class TestArrayColumn {
       index++;
     }
     checkExpandArray((ArrayColumn)column, repetitions);
+  }
+
+  @ParameterizedTest
+  @MethodSource("data1")
+  public void T_checkChildLoad_withExpandWhenStartGreaterThanColumnSize(final String targetClassName) throws IOException {
+    int[] repetitions = new int[] {0, 0, 0, 0, 0, 3, 2, 1};
+    int loadSize = getLoadSize(repetitions);
+    ColumnBinary columnBinary = createColumnBinaryFromJsonString(
+        targetClassName, getJsonStringsStartGreaterThanColumnSize(), repetitions, loadSize);
+    IColumnBinaryMaker maker = FindColumnBinaryMaker.get( targetClassName );
+    ILoader<Boolean> loader = new CheckLoadChildRunLengthEncodingArrayLoader( loadSize );
+    maker.load( columnBinary, loader );
+    assertTrue( loader.build() );
   }
 
   @Test

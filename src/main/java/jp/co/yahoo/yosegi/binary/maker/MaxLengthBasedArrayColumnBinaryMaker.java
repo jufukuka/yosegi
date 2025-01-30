@@ -209,6 +209,9 @@ public class MaxLengthBasedArrayColumnBinaryMaker implements IColumnBinaryMaker 
           nullOffset += columnBinary.repetitions[i];
         }
       }
+      loader.loadChild(
+          UnsupportedColumnBinaryMaker.createUnsupportedColumnBinary( "child" , nullOffset ),
+          nullOffset);
       return;
     }
 
