@@ -29,8 +29,37 @@ public class BlockIndexNode {
   protected IBlockIndex blockIndex;
   protected boolean isDisable;
 
+  private int keyNum;
+
   public BlockIndexNode() {
     childContainer = new HashMap<String,BlockIndexNode>();
+  }
+
+  /**
+   * Dump BlockIndexNode.
+   */
+  public int dump( final String key ) {
+    if ( blockIndex != null ) {
+      System.out.println( "blockIndex.name: " + blockIndex.getBlockIndexType().name()
+              + ", binarySize: " + blockIndex.getBinarySize() );
+    }
+    if ( childContainer == null ) {
+      return 0;
+    }
+    if (childContainer.isEmpty()) {
+      return 0;
+    }
+    System.out.println( "===== " + key + " =====" );
+    System.out.println( "index size: " + childContainer.size() );
+    keyNum += childContainer.size();
+    for ( Map.Entry<String,BlockIndexNode> entry : childContainer.entrySet() ) {
+      System.out.println( entry.getKey() );
+      keyNum += entry.getValue().dump( entry.getKey() );
+    }
+    if ( key.equals( "root" ) ) {
+      System.out.println( "===== keyNum: " + keyNum + " =====" );
+    }
+    return keyNum;
   }
 
   @Override
@@ -202,6 +231,7 @@ public class BlockIndexNode {
     childContainer.clear();
     blockIndex = null;
     isDisable = false;
+    keyNum = 0;
   }
 
   /**

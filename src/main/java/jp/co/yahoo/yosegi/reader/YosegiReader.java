@@ -59,6 +59,10 @@ public class YosegiReader implements AutoCloseable {
   private SummaryStats readStats = new SummaryStats();
   private long readBytes;
 
+  private long blockMetaBytes;
+  private int blockNum;
+  private int streamNum;
+
   private class FileHeaderMeta {
     public final int blockSize;
     public final int headerSize;
@@ -151,6 +155,7 @@ public class YosegiReader implements AutoCloseable {
     blockSize = meta.blockSize;
 
     int blockCount = Double.valueOf( Math.ceil( (double)dataSize / (double)blockSize ) ).intValue();
+    blockNum = blockCount;
     for ( int i = 0 ; i < blockCount ; i++ ) {
       int targetBlockSize = blockSize;
       if ( i == 0 ) {
@@ -187,6 +192,8 @@ public class YosegiReader implements AutoCloseable {
       currentBlockReader.setStream( in , readOffset.length );
       blockCount += currentBlockReader.getBlockCount();
       readBytes += currentBlockReader.getReadBytes();
+      blockMetaBytes += currentBlockReader.getBlockMetaBytes();
+      streamNum++;
       // IBlockReader.getReadStats method returns an empty result
       readStats.merge( currentBlockReader.getReadStats() );
       inReadOffset += readOffset.length;
@@ -264,6 +271,18 @@ public class YosegiReader implements AutoCloseable {
     return readBytes;
   }
 
+  public long getBlockMetaBytes() {
+    return blockMetaBytes;
+  }
+
+  public int getBlockNum() {
+    return blockNum;
+  }
+
+  public int getStreamNum() {
+    return streamNum;
+  }
+
   /**
    * Close InputStream and reset internal data.
    */
@@ -279,6 +298,9 @@ public class YosegiReader implements AutoCloseable {
     readBytes = 0;
     readTargetList.clear();
     currentBlockReader.close();
+    blockMetaBytes = 0;
+    blockNum = 0;
+    streamNum = 0;
   }
 
 }

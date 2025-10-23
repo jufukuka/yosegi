@@ -62,6 +62,8 @@ public class PushdownSupportedBlockReader implements IBlockReader {
   private IExpressionNode blockSkipIndex;
   private long readBytes = 0;
 
+  private long blockMetaBytes = 0;
+
   public PushdownSupportedBlockReader() {
     block = new Block();
   }
@@ -155,8 +157,10 @@ public class PushdownSupportedBlockReader implements IBlockReader {
     int blockIndexLength = ByteBuffer.wrap( blockIndexLengthBytes ).getInt();
     byte[] blockIndexBinary = new byte[ blockIndexLength ];
     readBytes += InputStreamUtils.read( in , blockIndexBinary , 0 , blockIndexBinary.length );
+    blockMetaBytes = readBytes;
 
     blockIndexNode = BlockIndexNode.createFromBinary( blockIndexBinary , 0 );
+    blockIndexNode.dump( "root" );
     expandFunction.expandIndexNode( blockIndexNode );
     flattenFunction.flattenIndexNode( blockIndexNode );
 
@@ -208,6 +212,7 @@ public class PushdownSupportedBlockReader implements IBlockReader {
     byte[] metaBytes = new byte[metaLength];
 
     readBytes += InputStreamUtils.read( in , metaBytes , 0 , metaLength );
+    blockMetaBytes = readBytes;
 
     int decompressSize = compressor.getDecompressSize( metaBytes , 0 , metaLength );
     byte[] metaBinary = new byte[decompressSize];
@@ -274,6 +279,11 @@ public class PushdownSupportedBlockReader implements IBlockReader {
   @Override
   public long getReadBytes() {
     return readBytes;
+  }
+
+  @Override
+  public long getBlockMetaBytes() {
+    return blockMetaBytes;
   }
 
   @Override

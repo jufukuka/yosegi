@@ -52,6 +52,10 @@ public interface IBlockReader {
     return 0;
   }
 
+  default long getBlockMetaBytes() {
+    return 0;
+  }
+
   SummaryStats getReadStats();
 
   Integer getCurrentSpreadSize();
